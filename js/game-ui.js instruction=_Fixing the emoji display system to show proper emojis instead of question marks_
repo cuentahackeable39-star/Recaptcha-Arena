@@ -1,0 +1,99 @@
+class GameUI {
+    constructor() {
+        this.elements = {
+            scoreValue: document.getElementById('scoreValue'),
+            levelValue: document.getElementById('levelValue'),
+            streakValue: document.getElementById('streakValue'),
+            progressFill: document.getElementById('progressFill'),
+            progressText: document.getElementById('progressText'),
+            challengeGrid: document.getElementById('challengeGrid'),
+            challengeTitle: document.getElementById('challengeTitle'),
+            challengeDesc: document.getElementById('challengeDesc'),
+            timerText: document.getElementById('timerText'),
+            timerProgress: document.getElementById('timerProgress'),
+            achievementPopup: document.getElementById('achievementPopup'),
+            gameOverModal: document.getElementById('gameOverModal')
+        };
+
+        this.timerInterval = null;
+        this.particleSystem = new ParticleSystem();
+    }
+
+    async renderChallengeGrid(challenge) {
+        const grid = this.elements.challengeGrid;
+        grid.innerHTML = '';
+
+        const gridSize = challenge.gridSize;
+        const totalTiles = gridSize * gridSize;
+
+        grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+
+        // Add special effects based on level
+        if (challenge.specialEffects) {
+            grid.classList.add(`effect-${challenge.specialEffects}`);
+        }
+
+        const pattern = challenge.pattern;
+        const isEmoji = challenge.emoji;
+
+        for (let i = 0; i < totalTiles; i++) {
+            const tile = this.createTile(challenge, i, pattern, isEmoji);
+            grid.appendChild(tile);
+        }
+
+        this.updateProgress();
+    }
+
+    createTile(challenge, index, pattern, isEmoji) {
+        const tile = document.createElement('div');
+        tile.className = `game-tile ${challenge.specialEffects || ''}`;
+
+        const isTarget = pattern.includes(index);
+        tile.dataset.target = isTarget;
+        tile.dataset.type = challenge.targetType;
+
+        const tileContent = document.createElement('div');
+        tileContent.className = 'tile-content';
+
+        if (isEmoji) {
+            // Always show the target emoji for target tiles, decoy emoji for others
+            tileContent.textContent = isTarget ? challenge.targetType : this.getDecoyEmoji(challenge.targetType);
+            tileContent.style.fontSize = 'clamp(24px, 8vw, 48px)';
+            tileContent.style.display = 'flex';
+            tileContent.style.alignItems = 'center';
+            tileContent.style.justifyContent = 'center';
+        }
+
+        // Add particle effects on hover
+        tile.addEventListener('mouseenter', () => {
+            if (!tile.classList.contains('clicked')) {
+                this.particleSystem.create(tile);
+            }
+        });
+
+        // Add click feedback
+        tile.addEventListener('click', () => {
+            if (!tile.classList.contains('clicked')) {
+                this.createClickEffect(tile);
+            }
+        });
+
+        tile.appendChild(tileContent);
+        return tile;
+    }
+
+    getDecoyEmoji(targetType) {
+        const decoys = {
+            '🚗': ['🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🏍️', '🚲', '🛵'],
+            '🍕': ['🍔', '🍟', '🌭', '🍿', '🧂', '🥓', '🍳', '🥞', '🥐', '🥨', '🥯', '🧀', '🍖', '🍗', '🥩', '🥪', '🌮', '🌯', '🧆', '🥙', '🍱', '🍜', '🍲', '🍣', '🍤', '🍙', '🍚', '🍛', '🍝'],
+            '🐶': ['🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🦆', '🦅', '🦉', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦗', '🕷️', '🦂'],
+            '⭐': ['✨', '💫', '🎯', '🎪', '🎭', '🎨', '🎸', '🎺', '🎮', '🎲', '🎰', '🎪', '🎨', '🔮', '⚡', '🔥', '💎', '🌈', '☀️', '🌙', '💥', '🎊', '🎉'],
+            '🎯': ['🏆', '🥇', '🥈', '🥉', '🏅', '🎖️', '🏵️', '🎗️', '🎟️', '🎫', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🎷', '🎺', '🎸', '🪕', '🎻']
+        };
+
+        const options = decoys[targetType] || ['❓', '❔', '💭', '🤔', '❓'];
+        return options[Math.floor(Math.random() * options.length)];
+    }
+
+    // Rest of the class remains the same...
+}

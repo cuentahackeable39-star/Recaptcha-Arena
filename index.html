@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>reCAPTCHA Game Arena</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-ui">
+        <div class="score-display">
+            <div class="score-item">
+                <span class="score-label">Score</span>
+                <span class="score-value" id="scoreValue">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Level</span>
+                <span class="score-value" id="levelValue">1</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Streak</span>
+                <span class="score-value" id="streakValue">0</span>
+            </div>
+        </div>
+        
+        <div class="level-progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <span class="progress-text" id="progressText">0/5</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="game-container">
+            <h1 class="game-title">
+                <span class="title-glow">reCAPTCHA</span>
+                <span class="title-normal">Arena</span>
+            </h1>
+            
+            <div class="game-stats">
+                <div class="stat-badge">
+                    <span class="stat-icon">🎯</span>
+                    <span class="stat-text" id="accuracyText">100%</span>
+                </div>
+                <div class="stat-badge">
+                    <span class="stat-icon">⚡</span>
+                    <span class="stat-text" id="speedText">0.0s</span>
+                </div>
+                <div class="stat-badge">
+                    <span class="stat-icon">🏆</span>
+                    <span class="stat-text" id="bestStreakText">0</span>
+                </div>
+            </div>
+            
+            <div class="challenge-area">
+                <div class="challenge-header">
+                    <h2 id="challengeTitle">Level 1: Traffic Light Hunt</h2>
+                    <p id="challengeDesc">Click all traffic lights to proceed!</p>
+                </div>
+                
+                <div class="timer-container">
+                    <div class="timer-ring">
+                        <svg class="timer-svg" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" class="timer-bg"/>
+                            <circle cx="50" cy="50" r="45" class="timer-progress" id="timerProgress"/>
+                        </svg>
+                        <span class="timer-text" id="timerText">30</span>
+                    </div>
+                </div>
+                
+                <div class="challenge-grid" id="challengeGrid">
+                    <!-- Game tiles will be generated here -->
+                </div>
+                
+                <div class="game-controls">
+                    <button class="game-btn hint-btn" id="hintBtn">
+                        <span class="btn-icon">💡</span>
+                        Hint (<span id="hintsLeft">3</span>)
+                    </button>
+                    <button class="game-btn skip-btn" id="skipBtn">
+                        <span class="btn-icon">⏭️</span>
+                        Skip
+                    </button>
+                    <button class="game-btn power-btn" id="powerBtn">
+                        <span class="btn-icon">⚡</span>
+                        Power Up
+                    </button>
+                </div>
+            </div>
+            
+            <div class="achievement-popup" id="achievementPopup">
+                <div class="achievement-content">
+                    <span class="achievement-icon">🏆</span>
+                    <div class="achievement-text">
+                        <h3 id="achievementTitle">Achievement Unlocked!</h3>
+                        <p id="achievementDesc">Great job!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="modal-content game-over-content">
+            <h2>Game Over!</h2>
+            <div class="final-score">
+                <span class="final-score-label">Final Score</span>
+                <span class="final-score-value" id="finalScoreValue">0</span>
+            </div>
+            <div class="game-stats-summary">
+                <div class="stat-row">
+                    <span>Best Streak</span>
+                    <span id="finalBestStreak">0</span>
+                </div>
+                <div class="stat-row">
+                    <span>Accuracy</span>
+                    <span id="finalAccuracy">0%</span>
+                </div>
+                <div class="stat-row">
+                    <span>Level Reached</span>
+                    <span id="finalLevel">1</span>
+                </div>
+            </div>
+            <button class="game-btn restart-btn" id="restartBtn">
+                <span class="btn-icon">🔄</span>
+                Play Again
+            </button>
+        </div>
+    </div>
+
+    <!-- Modular Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/ai-generator.js"></script>
+    <script src="js/game-ui.js"></script>
+    <script src="js/game-logic.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

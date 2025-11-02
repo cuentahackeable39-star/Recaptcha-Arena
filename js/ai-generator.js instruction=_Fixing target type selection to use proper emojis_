@@ -1,0 +1,369 @@
+class AILevelGenerator {
+    constructor() {
+        this.currentType = 0;
+        this.patternCache = new Map();
+    }
+
+    async generateChallenge(playerStats) {
+        const challengeType = this.selectChallengeType(playerStats);
+        const gridSize = this.calculateGridSize(playerStats);
+
+        // Dynamic target count with difficulty scaling
+        const baseTargetCount = Math.max(1, Math.floor(gridSize * gridSize * 0.25));
+        const difficultyMultiplier = playerStats.difficultyMultiplier || 1;
+        const targetCount = Math.min(
+            Math.floor(baseTargetCount * difficultyMultiplier),
+            Math.floor(gridSize * gridSize * 0.6)
+        );
+
+        const pattern = this.generateAdvancedPattern(gridSize, targetCount, playerStats);
+
+        // Add special effects for higher levels
+        const specialEffects = this.generateSpecialEffects(playerStats);
+
+        // Calculate time limit based on difficulty
+        const timeLimit = this.calculateTimeLimit(playerStats, gridSize, targetCount);
+
+        const challenge = {
+            type: challengeType.type,
+            name: challengeType.name,
+            description: this.generateDescription(challengeType, playerStats),
+            targetType: this.selectTargetType(challengeType.targetTypes, playerStats),
+            gridSize: gridSize,
+            pattern: pattern,
+            timeLimit: timeLimit,
+            specialEffects: specialEffects,
+            emoji: true,
+            difficultyRating: this.calculateDifficultyRating(playerStats)
+        };
+
+        return challenge;
+    }
+
+    calculateGridSize(playerStats) {
+        // Smarter grid sizing based on performance
+        const baseSize = 3 + Math.floor(playerStats.level / 3);
+
+        // Reduce grid size if player is struggling
+        if (playerStats.accuracy < 60 && playerStats.level > 10) {
+            return Math.max(4, baseSize - 1);
+        }
+
+        // Increase grid size for skilled players
+        if (playerStats.accuracy > 85 && playerStats.level > 15) {
+            return Math.min(8, baseSize + 1);
+        }
+
+        return Math.min(7, baseSize);
+    }
+
+    calculateTimeLimit(playerStats, gridSize, targetCount) {
+        let baseTime = 35 - Math.floor(playerStats.level / 4);
+
+        // Adjust based on grid complexity
+        const complexity = (gridSize * gridSize) / (targetCount + 1);
+        baseTime += Math.floor(complexity);
+
+        // Reduce time for skilled players
+        if (playerStats.accuracy > 80) {
+            baseTime -= 5;
+        }
+
+        return Math.max(8, baseTime);
+    }
+
+    generateAdvancedPattern(gridSize, targetCount, playerStats) {
+        // Use cached patterns for performance
+        const cacheKey = `${gridSize}-${targetCount}-${playerStats.level}`;
+        if (this.patternCache.has(cacheKey)) {
+            return this.patternCache.get(cacheKey);
+        }
+
+        const totalTiles = gridSize * gridSize;
+        const pattern = [];
+        const used = new Set();
+
+        // Advanced pattern generation based on player skill
+        if (playerStats.level > 20) {
+            // Generate complex patterns for expert players
+            this.generateComplexPattern(gridSize, targetCount, pattern, used);
+        } else if (playerStats.level > 10) {
+            // Generate challenging patterns
+            this.generateChallengingPattern(gridSize, targetCount, pattern, used);
+        } else {
+            // Standard pattern generation
+            this.generateStandardPattern(gridSize, targetCount, pattern, used);
+        }
+
+        // Cache the pattern
+        this.patternCache.set(cacheKey, [...pattern]);
+
+        return pattern;
+    }
+
+    generateComplexPattern(gridSize, targetCount, pattern, used) {
+        // Create patterns that are hard to spot
+        const strategies = [
+            () => this.createDiagonalPattern(gridSize, pattern, used),
+            () => this.createSpiralPattern(gridSize, pattern, used),
+            () => this.createClusteredPattern(gridSize, targetCount, pattern, used),
+            () => this.createEdgePattern(gridSize, pattern, used)
+        ];
+
+        const strategy = strategies[Math.floor(Math.random() * strategies.length)];
+        strategy();
+
+        // Fill remaining targets randomly
+        while (pattern.length < targetCount && pattern.length < gridSize * gridSize) {
+            const pos = Math.floor(Math.random() * gridSize * gridSize);
+            if (!used.has(pos)) {
+                pattern.push(pos);
+                used.add(pos);
+            }
+        }
+    }
+
+    generateChallengingPattern(gridSize, targetCount, pattern, used) {
+        // Mix of edge and random positions
+        const edgePositions = this.getEdgePositions(gridSize);
+        const randomEdge = edgePositions[Math.floor(Math.random() * edgePositions.length)];
+
+        if (!used.has(randomEdge)) {
+            pattern.push(randomEdge);
+            used.add(randomEdge);
+        }
+
+        // Add some clustered positions
+        const clusterCenter = Math.floor(Math.random() * gridSize * gridSize);
+        const clusterPositions = this.getClusterPositions(clusterCenter, gridSize, 2);
+
+        clusterPositions.forEach(pos => {
+            if (pattern.length < targetCount && !used.has(pos)) {
+                pattern.push(pos);
+                used.add(pos);
+            }
+        });
+
+        // Fill with random positions
+        while (pattern.length < targetCount && pattern.length < gridSize * gridSize) {
+            const pos = Math.floor(Math.random() * gridSize * gridSize);
+            if (!used.has(pos)) {
+                pattern.push(pos);
+                used.add(pos);
+            }
+        }
+    }
+
+    generateStandardPattern(gridSize, targetCount, pattern, used) {
+        // Ensure good distribution
+        const positions = Array.from({length: gridSize * gridSize}, (_, i) => i);
+
+        // Shuffle using Fisher-Yates
+        for (let i = positions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [positions[i], positions[j]] = [positions[j], positions[i]];
+        }
+
+        // Take first targetCount positions
+        for (let i = 0; i < targetCount && i < positions.length; i++) {
+            pattern.push(positions[i]);
+            used.add(positions[i]);
+        }
+    }
+
+    createDiagonalPattern(gridSize, pattern, used) {
+        const diagonal = Math.floor(Math.random() * 2); // 0 for main, 1 for anti-diagonal
+        for (let i = 0; i < gridSize; i++) {
+            const pos = diagonal === 0 ? i * gridSize + i : i * gridSize + (gridSize - 1 - i);
+            if (!used.has(pos)) {
+                pattern.push(pos);
+                used.add(pos);
+            }
+        }
+    }
+
+    createSpiralPattern(gridSize, pattern, used) {
+        const spiral = [];
+        let top = 0, bottom = gridSize - 1, left = 0, right = gridSize - 1;
+
+        while (top <= bottom && left <= right) {
+            for (let i = left; i <= right; i++) spiral.push(top * gridSize + i);
+            top++;
+            for (let i = top; i <= bottom; i++) spiral.push(i * gridSize + right);
+            right--;
+            if (top <= bottom) {
+                for (let i = right; i >= left; i--) spiral.push(bottom * gridSize + i);
+                bottom--;
+            }
+            if (left <= right) {
+                for (let i = bottom; i >= top; i--) spiral.push(i * gridSize + left);
+                left++;
+            }
+        }
+
+        // Take every 3rd position from spiral
+        for (let i = 0; i < spiral.length; i += 3) {
+            if (!used.has(spiral[i])) {
+                pattern.push(spiral[i]);
+                used.add(spiral[i]);
+            }
+        }
+    }
+
+    createClusteredPattern(gridSize, targetCount, pattern, used) {
+        const clusterCount = Math.ceil(targetCount / 3);
+        for (let c = 0; c < clusterCount; c++) {
+            const center = Math.floor(Math.random() * gridSize * gridSize);
+            const clusterSize = Math.min(3, targetCount - pattern.length);
+            const clusterPositions = this.getClusterPositions(center, gridSize, clusterSize);
+
+            clusterPositions.forEach(pos => {
+                if (!used.has(pos)) {
+                    pattern.push(pos);
+                    used.add(pos);
+                }
+            });
+        }
+    }
+
+    createEdgePattern(gridSize, pattern, used) {
+        const edges = this.getEdgePositions(gridSize);
+        const selectedEdges = edges.sort(() => Math.random() - 0.5).slice(0, Math.min(edges.length, 4));
+
+        selectedEdges.forEach(pos => {
+            if (!used.has(pos)) {
+                pattern.push(pos);
+                used.add(pos);
+            }
+        });
+    }
+
+    getEdgePositions(gridSize) {
+        const edges = [];
+        // Top and bottom edges
+        for (let i = 0; i < gridSize; i++) {
+            edges.push(i); // Top
+            edges.push((gridSize - 1) * gridSize + i); // Bottom
+        }
+        // Left and right edges (excluding corners)
+        for (let i = 1; i < gridSize - 1; i++) {
+            edges.push(i * gridSize); // Left
+            edges.push(i * gridSize + gridSize - 1); // Right
+        }
+        return edges;
+    }
+
+    getClusterPositions(center, gridSize, clusterSize) {
+        const positions = [center];
+        const row = Math.floor(center / gridSize);
+        const col = center % gridSize;
+
+        for (let i = 0; i < clusterSize - 1; i++) {
+            const dr = Math.floor(Math.random() * 3) - 1; // -1, 0, 1
+            const dc = Math.floor(Math.random() * 3) - 1;
+            const newRow = Math.max(0, Math.min(gridSize - 1, row + dr));
+            const newCol = Math.max(0, Math.min(gridSize - 1, col + dc));
+            positions.push(newRow * gridSize + newCol);
+        }
+
+        return positions;
+    }
+
+    generateSpecialEffects(playerStats) {
+        const effects = [];
+
+        if (playerStats.level > 5) {
+            effects.push(['rainbow', 'neon', 'pulse'][Math.floor(Math.random() * 3)]);
+        }
+
+        if (playerStats.level > 10) {
+            effects.push(['glitch', 'wave'][Math.floor(Math.random() * 2)]);
+        }
+
+        if (playerStats.level > 15 && playerStats.accuracy > 80) {
+            effects.push('matrix');
+        }
+
+        return effects.length > 0 ? effects[Math.floor(Math.random() * effects.length)] : null;
+    }
+
+    selectChallengeType(playerStats) {
+        const types = GAME_CONFIG.CHALLENGE_TYPES;
+
+        // Rotate through types, but favor harder ones for skilled players
+        let index = (playerStats.level - 1) % types.length;
+
+        if (playerStats.accuracy > 85 && playerStats.level > 15) {
+            // Skilled players get more challenging types
+            const hardTypes = [0, 1, 3]; // Traffic, Emoji, Animal
+            index = hardTypes[Math.floor(Math.random() * hardTypes.length)];
+        }
+
+        return types[index];
+    }
+
+    selectTargetType(possibleTypes, playerStats) {
+        // Ensure we always return a valid emoji, not undefined
+        if (!possibleTypes || possibleTypes.length === 0) {
+            return '🎯'; // Default fallback
+        }
+
+        // Favor more complex emojis for higher levels
+        if (playerStats.level > 20) {
+            const complexTypes = possibleTypes.filter(type =>
+                ['🚁', '🚀', '🛸', '🦖', '🦄', '🐉', '🧬', '🔮', '⚡', '💎'].includes(type)
+            );
+            if (complexTypes.length > 0) {
+                return complexTypes[Math.floor(Math.random() * complexTypes.length)];
+            }
+        }
+
+        // Return a random valid emoji from the list
+        return possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
+    }
+
+    generateDescription(challengeType, playerStats) {
+        const level = playerStats.level;
+        const accuracy = playerStats.accuracy;
+
+        if (level > 25) {
+            return `Master level: Find the hidden ${challengeType.name.toLowerCase()} among distractions!`;
+        } else if (level > 15) {
+            return `Expert challenge: Spot the ${challengeType.name.toLowerCase()} before time runs out!`;
+        } else if (level > 10) {
+            return `Advanced: Multiple ${challengeType.name.toLowerCase()} types, limited time!`;
+        } else if (level > 5) {
+            return `Find all ${challengeType.name.toLowerCase()} targets to proceed!`;
+        } else {
+            return challengeType.descriptionFunc(level);
+        }
+    }
+
+    calculateDifficultyRating(playerStats) {
+        const levelFactor = playerStats.level / 30;
+        const accuracyFactor = playerStats.accuracy / 100;
+        const streakFactor = Math.min(1, playerStats.streak / 20);
+
+        return Math.min(1, (levelFactor + accuracyFactor + streakFactor) / 3);
+    }
+
+    generatePattern(gridSize, targetCount) {
+        // Legacy method for backward compatibility
+        const totalTiles = gridSize * gridSize;
+        const pattern = [];
+        const used = new Set();
+
+        const positions = Array.from({length: totalTiles}, (_, i) => i);
+
+        for (let i = positions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [positions[i], positions[j]] = [positions[j], positions[i]];
+        }
+
+        for (let i = 0; i < targetCount && i < positions.length; i++) {
+            pattern.push(positions[i]);
+        }
+
+        return pattern;
+    }
+}

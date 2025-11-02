@@ -1,0 +1,200 @@
+styles.css instruction="Adding CSS for new difficulty features and animations"
+/* Add these styles to your existing styles.css */
+
+.difficulty-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 10px 15px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-top: 10px;
+}
+
+.difficulty-label {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.difficulty-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffa502;
+    text-shadow: 0 0 10px rgba(255, 165, 2, 0.5);
+}
+
+.click-effect {
+    position: fixed;
+    pointer-events: none;
+    font-size: 20px;
+    animation: click-burst 0.5s ease-out forwards;
+    z-index: 1000;
+}
+
+@keyframes click-burst {
+    0% {
+        transform: scale(0) translate(-50%, -50%);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5) translate(-50%, -50%);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.5) translate(-50%, -50%);
+        opacity: 0;
+    }
+}
+
+@keyframes float-distraction {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(-100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.distraction-element {
+    animation: float-distraction 5s linear infinite;
+    pointer-events: none;
+}
+
+.game-tile.decoy {
+    position: relative;
+    overflow: visible;
+}
+
+.game-tile.decoy::after {
+    content: '⚠️';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 16px;
+    opacity: 0.7;
+    animation: decoy-pulse 2s ease-in-out infinite;
+}
+
+@keyframes decoy-pulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+.game-tile.glitch {
+    animation: glitch-effect 0.5s infinite;
+}
+
+@keyframes glitch-effect {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+}
+
+/* Enhanced confetti animation */
+.confetti {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: confetti-fall 3s ease-in-out forwards;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg) scale(0);
+        opacity: 0;
+    }
+}
+
+/* Streak glow effect */
+.score-value[style*="color: rgb(255, 165, 2)"] {
+    animation: streak-glow 1s ease-in-out infinite alternate;
+}
+
+@keyframes streak-glow {
+    from { text-shadow: 0 0 10px rgba(255, 165, 2, 0.5); }
+    to { text-shadow: 0 0 20px rgba(255, 165, 2, 1); }
+}
+
+/* Hidden targets effect */
+.game-tile[data-target="true"][style*="opacity: 0.1"] {
+    animation: hidden-target 2s ease-in-out infinite;
+}
+
+@keyframes hidden-target {
+    0%, 100% { opacity: 0.1; }
+    50% { opacity: 0.3; }
+}
+
+/* Rotating grid effect */
+.challenge-grid[style*="rotate"] {
+    transition: transform 0.5s ease;
+}
+
+/* Enhanced particle system */
+.particle {
+    width: 6px;
+    height: 6px;
+    background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(102,126,234,0.6) 70%, transparent 100%);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.8);
+    animation: particle-float 1s ease-out forwards;
+}
+
+@keyframes particle-float {
+    0% {
+        transform: scale(0) translateY(0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1) translateY(-25px);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.5) translateY(-50px);
+        opacity: 0;
+    }
+}
+
+/* Enhanced timer for hard mode */
+.timer-progress[style*="stroke: rgb(255, 71, 87)"] {
+    animation: timer-panic 1s ease-in-out infinite;
+}
+
+@keyframes timer-panic {
+    0%, 100% { stroke-width: 8; }
+    50% { stroke-width: 12; }
+}
+
+/* Level flash effect */
+.level-flash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 1000;
+    animation: level-flash 1s ease-out forwards;
+}
+
+@keyframes level-flash {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
